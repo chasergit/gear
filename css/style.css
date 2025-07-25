@@ -1,0 +1,127 @@
+html,body,form,input {
+margin:0;
+padding:0;
+}
+
+* {
+font-size:14px;
+font-family:tahoma;
+color:#ffffff;
+}
+
+img { border:none; }
+
+select,input,textarea { outline:none; }
+
+html,body {
+height:100%;
+color:#000000;
+}
+
+a {
+text-decoration:none;
+}
+
+.debug {
+position:absolute;
+left:0px;
+top:40%;
+border-radius:5px;
+padding:5px;
+font-family:tahoma;
+font-size:14px;
+color:#ffffff;
+background:rgba(46,149,210,0.8);
+}
+
+.debug * {
+height:18px;
+line-height:18px;
+}
+
+.debug font {
+display:inline-block;
+width:50px;
+text-align:right;
+vertical-align:top;
+}
+
+.debug span {
+display:inline-block;
+width:50px;
+text-align:right;
+vertical-align:top;
+}
+
+
+.health_common {
+position:fixed;
+width:200px;
+height:30px;
+bottom:0;
+margin-bottom:20px;
+margin-left:20px;
+background:rgba(0,0,0,0.5);
+}
+
+.health_pad {
+width:190px;
+height:20px;
+margin-top:5px;
+margin-left:5px;
+background:rgba(0,0,0,0.5);
+}
+
+.health_value {
+width:80%;
+height:20px;
+background:#BBBABD;
+}
+
+.ammo_common {
+position:fixed;
+right:0;
+bottom:0;
+margin-right:140px;
+margin-bottom:20px;
+width:100px;
+border-radius:4px;
+background:rgba(0,0,0,0.5);
+}
+
+.ammo_count {
+line-height:30px;
+font-family:tahoma;
+font-size:20px;
+text-align:center;
+}
+
+.ammo_title {
+line-height:20px;
+font-size:14px;
+text-align:center;
+}
+
+.grenade_common {
+position:fixed;
+right:0;
+bottom:0;
+margin-right:20px;
+margin-bottom:20px;
+width:100px;
+border-radius:4px;
+background:rgba(0,0,0,0.5);
+}
+
+.grenade_count {
+line-height:30px;
+font-family:tahoma;
+font-size:20px;
+text-align:center;
+}
+
+.grenade_title {
+line-height:20px;
+font-size:14px;
+text-align:center;
+}

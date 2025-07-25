@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+
+
+body{
+margin:0px;
+padding:0;
+}
+
+
+</style>
+</head>
+<body>
+
+
+<canvas id="canvas" width="1920" height="500" style="border:2px solid #ffc000;"></canvas>
+
+
+<script>
+
+
+
+
+var shadow_ground_canvas=document.getElementById("canvas");
+//var shadow_ground_canvas=document.createElement("canvas");
+var shadow_ground_ctx=shadow_ground_canvas.getContext("2d");
+//shadow_ground_ctx.fillStyle="#ffffff";
+//shadow_ground_ctx.fillRect(0,0,shadow_ground_canvas.width,shadow_ground_canvas.width);
+shadow_ground_ctx.fillStyle="#b0b0b0";
+shadow_ground_ctx.beginPath();
+shadow_ground_ctx.rect(10,10,shadow_ground_canvas.width-20,shadow_ground_canvas.width-20);
+shadow_ground_ctx.closePath();
+shadow_ground_ctx.strokeStyle="#009000";
+shadow_ground_ctx.stroke();
+shadow_ground_ctx.fillRect(50,50,100,50);
+shadow_ground_ctx.fillStyle="#000000";
+
+
+shadow_ground_ctx.fillRect(160,50,1,1);
+shadow_ground_ctx.fillRect(170,50,2,2);
+shadow_ground_ctx.fillRect(180,50,3,3);
+shadow_ground_ctx.fillRect(190,50,4,4);
+shadow_ground_ctx.fillRect(200,50,5,5);
+
+
+for(var n=0;n<60;n++){
+if(n<60){ var x=160+n*60-1100; }
+if(n<50){ var x=160+n*50-860; }
+if(n<40){ var x=160+n*40-500; }
+if(n<30){ var x=160+n*30-240; }
+if(n<20){ var x=160+n*20-80; }
+if(n<10){ var x=160+n*10; }
+shadow_ground_ctx.beginPath();
+shadow_ground_ctx.arc(x,60,0.5+n*0.5,0,2*Math.PI,false);
+var shadow_ground_grd=shadow_ground_ctx.createRadialGradient(x,60,0,x,60,0.5+n*0.5);
+shadow_ground_grd.addColorStop(0,"rgba(0,0,0,1)");
+shadow_ground_grd.addColorStop(1,"rgba(1,1,1,0)");
+shadow_ground_ctx.fillStyle=shadow_ground_grd;
+shadow_ground_ctx.fill();
+}
+
+
+for(var n=0;n<60;n++){
+if(n<60){ var x=160+n*90-1200; }
+if(n<50){ var x=160+n*80-860; }
+if(n<40){ var x=160+n*70-540; }
+if(n<30){ var x=160+n*60-260; }
+if(n<20){ var x=160+n*50-80; }
+if(n<10){ var x=160+n*40; }
+shadow_ground_ctx.beginPath();
+shadow_ground_ctx.arc(x,120,15+n*0.5,0,2*Math.PI,false);
+var shadow_ground_grd=shadow_ground_ctx.createRadialGradient(x,120,0,x,120,15+n*0.5);
+shadow_ground_grd.addColorStop(0,"rgba(0,0,0,1)");
+shadow_ground_grd.addColorStop(1,"rgba(1,1,1,0)");
+shadow_ground_ctx.fillStyle=shadow_ground_grd;
+shadow_ground_ctx.fill();
+}
+shadow_ground_ctx.fillStyle="#000000";
+
+
+//shadow_ground_ctx.globalCompositeOperation="darken"; // СОВМЕЩАЕТ ТЕНИ ПРАВИЛЬНО. НО ЭТО НАДО ТОЛЬКО ПРИ РАССТАВЛЕНИИ ТЕНЕЙ
+
+
+
+</script>
+
+
+</body>
+</html>

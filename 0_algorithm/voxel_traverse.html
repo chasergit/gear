@@ -1,0 +1,367 @@
+<!doctype>
+<html>
+<head>
+<style>
+body{
+margin:0;
+background:#eee;
+}
+
+#canvas{
+background:#fff;
+}
+</style>
+</head>
+<body>
+<canvas id="canvas" width="600" height="400"></canvas>
+
+
+<script>
+
+
+"use strict";
+
+
+function key(which,to){
+if(which==65){ go_left=to; }
+if(which==87){ go_up=to; }
+if(which==68){ go_right=to; }
+if(which==83){ go_down=to; }
+}
+
+
+document.onkeydown=function(e){ key((e||window.event).keyCode,1); }
+document.onkeyup=function(e){ key((e||window.event).keyCode,0); }
+
+
+let canvas=document.getElementById("canvas");
+let ctx=canvas.getContext("2d");
+
+
+canvas.onmousemove=function(event){
+end_x=event.clientX;
+end_z=event.clientY;
+};
+
+
+ctx.font="14px Arial";
+
+
+let player={};
+player.position={x:100,y:0,z:250};
+player.position={x:44,y:0,z:330};
+
+
+player.direction={x:0,y:0,z:-1};
+let end_x=100;
+let end_z=180;
+end_x=560;
+end_z=32;
+end_x=156;
+end_z=256;
+
+
+player.position={x:50,y:0,z:350};
+end_x=350;
+end_z=250;
+
+
+let go_left=0,go_right=0,go_up=0,go_down=0;
+
+
+let cell_size=50;
+
+
+// ЗДЕСЬ УКАЗЫВАЕМ КАКИЕ ЯЧЕЙКИ СУЩЕСТВУЮТ. Т.Е. ПРИ ПОИСКЕ, ЕСЛИ ЕСТЬ ТАКАЯ ЯЧЕЙКА, ТО ОНА БУДЕТ ДОБАВЛЕНА В РЕЗУЛЬТАТ
+let cell_50=[];
+cell_50["0_6"]=1;
+
+
+function cells_find(origin,direction,distance){
+
+
+if(distance==0){ return []; }
+
+
+let origin_x=origin.x;
+let origin_y=origin.y;
+let origin_z=origin.z;
+
+
+let direction_x=direction.x;
+let direction_y=direction.y;
+let direction_z=direction.z;
+
+
+let current_x=Math.floor(origin_x/cell_size);
+let current_y=Math.floor(origin_y/cell_size);
+let current_z=Math.floor(origin_z/cell_size);
+
+
+let found=[];
+if(cell_50[current_x+"_"+current_z]!=undefined){
+//found.push(current_x+"_"+current_z);
+found.push([current_x,current_z]);
+}
+
+
+// ГРАНИЦЫ
+let last_x=Math.floor((origin_x+direction_x*distance)/cell_size);
+let last_y=Math.floor((origin_y+direction_y*distance)/cell_size);
+let last_z=Math.floor((origin_z+direction_z*distance)/cell_size);
+
+
+// НАХОДИМ НАПРАВЛЕНИЕ
+let stepX=direction_x>=0?1:-1;
+let stepY=direction_y>=0?1:-1;
+let stepZ=direction_z>=0?1:-1;
+
+
+let tMaxX;
+let tMaxY;
+let tMaxZ;
+
+
+// НАХОДИМ БЛИЖАЙШУЮ ГРАНИЦУ ПО X
+
+
+let item_1=origin_x;
+let item_2=direction_x;
+// КООРДИНАТА X ЛЕЖИТ НА ГРАНИЦЕ ПО ОСИ X
+if(item_1%cell_size==0){
+if(item_2<0){ tMaxX=0; }
+else{ tMaxX=cell_size/item_2; }
+}
+// НЕ ЛЕЖИТ
+else{
+if(direction_x<0){
+item_1=-item_1;
+item_2=-item_2;
+}
+item_1=(item_1%cell_size+cell_size)%cell_size;
+tMaxX=(cell_size-item_1)/item_2;
+}
+
+
+// НАХОДИМ БЛИЖАЙШУЮ ГРАНИЦУ ПО Y
+
+
+item_1=origin_y;
+item_2=direction_y;
+// КООРДИНАТА Z ЛЕЖИТ НА ГРАНИЦЕ ПО ОСИ Y
+if(item_1%cell_size==0){
+if(item_2<0){ tMaxY=0; }
+else{ tMaxY=cell_size/item_2; }
+}
+// НЕ ЛЕЖИТ
+else{
+if(direction_y<0){
+item_1=-item_1;
+item_2=-item_2;
+}
+item_1=(item_1%cell_size+cell_size)%cell_size;
+tMaxY=(cell_size-item_1)/item_2;
+}
+
+
+// НАХОДИМ БЛИЖАЙШУЮ ГРАНИЦУ ПО Z
+
+
+item_1=origin_z;
+item_2=direction_z;
+// КООРДИНАТА Z ЛЕЖИТ НА ГРАНИЦЕ ПО ОСИ Z
+if(item_1%cell_size==0){
+if(item_2<0){ tMaxZ=0; }
+else{ tMaxZ=cell_size/item_2; }
+}
+// НЕ ЛЕЖИТ
+else{
+if(direction_z<0){
+item_1=-item_1;
+item_2=-item_2;
+}
+item_1=(item_1%cell_size+cell_size)%cell_size;
+tMaxZ=(cell_size-item_1)/item_2;
+}
+
+
+// КАКОЕ РАССТОЯНИЕ ДОЛЖЕН ПРОЙТИ ЛУЧ, ЧТОБЫ ПЕРЕСЕЧЬ КВАДРАТ ИЛИ КУБ.
+// НАПРИМЕР, КВАДРАТ 5 НА 5 МЕТРОВ. ПО ОСИ X ЛУЧ ИДЁТ ОТ ЛЕВОГО НИЖНЕГО УГЛА КВАДРАТА НАПРАВО БЕЗ НАКЛОНА, ТО ЕСТЬ ПРЯМАЯ И НАПРАВЛЕНИЕ РАВНО 1.
+// ЛУЧ ПЕРЕСЕЧЁТ КВАДРАТ ЧЕРЕЗ 5/1=5 МЕТРОВ. НО ЕСЛИ ЛУЧ ИДЁТ ПОД УГЛОМ, НАПРИМЕР, НАПРАВЛЕН В ПРАВЫЙ ВЕРХНИЙ УГОЛ, ТО ЕСТЬ ПО ДИАГОНАЛИ И НАПРАВЛЕНИЕ РАВНО 0.7,
+// ТО ЛУЧУ УЖЕ НАДО ПРОЙТИ 5/0.7=7.14 МЕТРОВ, ЧТОБЫ ПЕРЕСЕЧЬ КВАДРАТ
+let tDeltaX=cell_size/stepX/direction_x;
+let tDeltaZ=cell_size/stepZ/direction_z;
+
+
+let limit_x=distance+tDeltaX;
+let limit_z=distance+tDeltaZ;
+
+
+ctx.fillStyle="#000000";
+ctx.fillText("stepX="+stepX+" "+stepZ,20,40);
+ctx.fillText("tMaxX="+tMaxX+" "+tMaxZ,20,60);
+ctx.fillText("tDeltaX="+tDeltaX+" "+tDeltaZ,20,80);
+ctx.fillText("origin="+origin_x+" "+origin_z,20,100);
+ctx.fillText("direction="+direction_x+" "+direction_z,20,120);
+ctx.fillText("end="+(origin_x+direction_x*distance)+" "+(origin_z+direction_z*distance),20,140);
+ctx.fillText("curtent="+current_x+" "+current_z,20,160);
+ctx.fillText("last="+last_x+" "+last_z,20,180);
+
+
+while(true){
+
+
+// С КАКОЙ ПЕРВОЙ ОСЬЮ ПЕРЕСЕЧЁТСЯ ЛУЧ, ТО РАССТОЯНИЕ И ПЛЮСУЕМ И ВЫБИРАЕМ ЯЧЕЙКУ
+
+
+if(tMaxX<tMaxZ){
+tMaxX+=tDeltaX;
+current_x+=stepX;
+//face[0]=-stepX;
+//face[1]=0;
+//face[2]=0;
+}
+else{
+tMaxZ+=tDeltaZ;
+current_z+=stepZ;
+//face[0]=0;
+//face[1]=0;
+//face[2]=-stepZ;
+}
+
+
+if(tMaxX>limit_x || tMaxZ>limit_z){ break; }
+
+
+/*
+if(tMaxX<tMaxY){
+if(tMaxX<tMaxZ){
+current_x+=stepX;
+tMaxX=tMaxX+tDeltaX;
+//face[0]=-stepX;
+//face[1]=0;
+//face[2]=0;
+}
+else{
+current_z+=stepZ;
+tMaxZ=tMaxZ+tDeltaZ;
+//face[0]=0;
+//face[1]=0;
+//face[2]=-stepZ;
+}
+}
+else{
+if(tMaxY<tMaxZ){
+current_y+=stepY;
+tMaxY=tMaxY+tDeltaY;
+//face[0]=0;
+//face[1]=-stepY;
+//face[2]=0;
+}
+else{
+current_z+=stepZ;
+tMaxZ=tMaxZ+tDeltaZ;
+//face[0]=0;
+//face[1]=0;
+//face[2]=-stepZ;
+}
+}
+		
+
+if(tMaxX>limit_x || tMaxZ>limit_z || tMaxY>limit_y){ break; }
+*/
+
+// ДОБАВЛЯЕМ НАЙДЕННУЮ ЯЧЕЙКУ
+let name=current_x+"_"+current_z;
+if(cell_50[name]!=undefined){
+//found.push(name);
+found.push([current_x,current_z]);
+}
+ctx.fillStyle="rgba(255,0,0,0.2)";
+ctx.fillRect(current_x*cell_size,current_z*cell_size,cell_size,cell_size);
+
+
+}
+
+
+ctx.fillStyle="#000000";
+ctx.fillText("distance="+distance,20,200);
+ctx.fillText("tMaxX="+tMaxX+" "+tMaxZ,20,220);
+
+
+let max=found.length;
+for(let n=0;n<max;n++){
+ctx.fillStyle="#FF8080";
+ctx.fillRect(found[n][0]/1*cell_size,found[n][1]/1*cell_size,cell_size,cell_size);
+}
+
+
+return found;
+
+
+}
+
+
+function logic(){
+
+
+requestAnimationFrame(logic);
+
+
+if(go_left==1){ player.position.x-=1; }
+if(go_right==1){ player.position.x+=1;}
+if(go_up==1){ player.position.z-=1; }
+if(go_down==1){ player.position.z+=1; }
+
+
+ctx.clearRect(0,0,canvas.width,canvas.height);
+
+
+for(let x=0;x<30;x++){
+for(let y=0;y<30;y++){
+ctx.fillStyle=((x+y)%2===0)?"#AFA":"#AEA";
+ctx.fillRect(x*cell_size,y*cell_size,cell_size,cell_size);
+}
+}
+
+
+let direction_x=end_x-player.position.x;
+let direction_z=end_z-player.position.z;
+
+
+let divide=1/Math.sqrt(direction_x*direction_x+direction_z*direction_z);
+direction_x*=divide;
+direction_z*=divide;
+player.direction.x=direction_x;
+player.direction.z=direction_z;
+
+
+let dx=player.position.x-end_x,dz=player.position.z-end_z;
+let distance=Math.sqrt(dx*dx+dz*dz);
+
+
+let started=performance.now();
+let cells_found=cells_find(player.position,player.direction,distance);
+let b=(performance.now()-started).toFixed(4);
+ctx.fillStyle="#000000";
+ctx.fillText(b,250,50);
+
+
+ctx.strokeStyle="#000000";
+ctx.beginPath();
+ctx.moveTo(player.position.x,player.position.z);
+ctx.lineTo(end_x,end_z);
+ctx.stroke();
+
+
+}
+
+
+logic();
+
+
+</script>
+
+
+</body>
+</html>

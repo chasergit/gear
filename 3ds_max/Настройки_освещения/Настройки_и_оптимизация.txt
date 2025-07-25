@@ -1,0 +1,21 @@
+181124
+В настройках света тип теней на примере света у столба:
+Adv. Ray Traced долгий и делает кривую тень
+mental ray Shadow map не работает
+Area Shadows очень долгий и не то
+Shadow map быстрый и правильная гладкая тень
+Ray Traced Shadows поломанные тени
+VRayShadow быстрый как Shadow map, тень слегка кривая и не острая
+VRayShadowMap поломанные тени
+
+
+Итого: ставить Shadow map
+
+
+181124
+Omni и miAreaLightomni одно и тоже. И по скорости и освещению одинаковы.
+
+181124
+В Render Setup в разделе GI в Current preset ставить минимум Medium иначе будут красные подтёки на стыках
+В Render Setup в V-Ray в Image filter нормальные фильтры это: Qudratic, Soften и без фильтра. 
+
