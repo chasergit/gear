@@ -12,7 +12,7 @@ let player_direction={x:0,y:0,z:1};
 let player_angle={y:90,x:180};
 let player_height=1.80; // РОСТ
 let player_eyes=1.70; // УРОВЕНЬ ГЛАЗ
-let player_radius=0.2; // РАДИУС ИГРОКА
+let player_radius=0.25; // РАДИУС ИГРОКА
 let player_floor=-20; // НИЖЕ КАКОЙ ВЫСОТЫ ИГРОК НЕ МОЖЕТ УПАСТЬ
 let player_look_sensitivity=0.12; // ЧУВСТВИТЕЛЬНОСТЬ ПОВОРОТА
 
@@ -49,6 +49,14 @@ player_tall.position.y=player_eyes;
 player.add(player_tall);
 player_tall.add(player_head);
 player_head.add(camera);
+
+
+let player_head_angle=0;
+
+
+mesh["player_radius_helper"]=new THREE.Mesh(new THREE.CylinderGeometry(player_radius,player_radius,0.1,32,1),new THREE.MeshBasicMaterial({color:0xffff00,wireframe:true}));
+mesh["player_radius_helper"].frustumCulled=false;
+player.add(mesh["player_radius_helper"]);
 
 
 function player_collisions(){
@@ -141,7 +149,22 @@ player_speed_floor=Math.min(Math.max(player_speed_floor,player_speed_go),player_
 head_bobbing_run_multyplier=Math.min(head_bobbing_run_multyplier_max,Math.max(1,head_bobbing_run_multyplier));
 
 
-if(key_status["KeyE"]){ sun_direction_upadte();	}
+if(key_status["KeyQ"]){
+player_head_angle-=0.02;
+player_head_angle=Math.min(Math.max(player_head_angle,-1),1);
+hand_sway_head_angle_rotation_z+=0.005;
+hand_sway_head_angle_rotation_z=Math.min(Math.max(hand_sway_head_angle_rotation_z,-0.2),0.2);
+}
+else if(key_status["KeyE"]){
+player_head_angle+=0.02;
+player_head_angle=Math.min(Math.max(player_head_angle,-1),1);
+hand_sway_head_angle_rotation_z-=0.005;
+hand_sway_head_angle_rotation_z=Math.min(Math.max(hand_sway_head_angle_rotation_z,-0.2),0.2);
+}
+else{ player_head_angle+=-player_head_angle*0.06; hand_sway_head_angle_rotation_z+=-hand_sway_head_angle_rotation_z*0.06; }
+
+
+if(key_status["KeyY"]){ sun_direction_upadte();	}
 
 
 if(key_status["KeyR"] && action["gun_2_reload"].enabled==false){
@@ -262,7 +285,12 @@ function player_direction_update(){
 player_direction.x=Math.cos((-player_angle.x-90)*degrees_to_radian)*(Math.sin(player_angle.y*degrees_to_radian));
 player_direction.y=Math.cos(player_angle.y*degrees_to_radian);
 player_direction.z=Math.sin((-player_angle.x-90)*degrees_to_radian)*(Math.sin(player_angle.y*degrees_to_radian));
-player_head.lookAt(player.position.x+player_direction.x,player.position.y+player_eyes+player_direction.y,player.position.z+player_direction.z);
+player_head.lookAt(player.position.x+player_direction.x+player_head.position.x,player.position.y+player_eyes+player_direction.y+player_head.position.y,player.position.z+player_direction.z+player_head.position.z);
+
+
+player_head.position.x=Math.cos(-player_angle.x*degrees_to_radian)*player_head_angle*0.15;
+player_head.position.z=Math.sin(-player_angle.x*degrees_to_radian)*player_head_angle*0.15;
+player_head.position.y=-0.1*Math.abs(player_head_angle);
 
 
 }

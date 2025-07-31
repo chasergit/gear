@@ -1,3 +1,77 @@
+/*
+120625 колыхание оружия https://editor.me/raznoe/0_fps_all/fps_platform/index.html
+130325 для перехода с ходьбы на бег используем тот же код просто увеличивая силу смещения и может уменьшая скорость колыхания головы т.е.:
+walk_bob=1.2;
+run_bob=3.8;
+walk_bob_frequency=0.1;
+run_bob_frequency=0.3;
+и также колыхание оружия от минимума до максимума
+130325 Надо ли наклоны Q, E
+110325 000_spring.html
+130125 Как делается отдача прицел https://www.youtube.com/watch?v=raslm-k5l74
+050125 https://js.otrisovano.ru/android/chapter08/
+211224
+000_FPSAnimator_Playable здеь при выстреле камера дергается приятно наискось как в калибре
+000_spring.html тряска можно и для 3d видимо
+warface_videos папка
+https://www.youtube.com/watch?v=JrQicb3fwiA&ab_channel=JungaBoon
+https://github.com/jungaboon/Tutorial_Scripts/blob/main/FPS%20Weapon%20Sway%20and%20Movement/player_controller.gd
+*/
+
+/*
+В James Bond при ходьбе влево-вправо наклон головы слегка. При ходьбе вперёд покачивание оружия. при попадании по игроку шатание. при выстреле отдача.
+В Payday тоже посмотреть
+
+не забываем домножать на delta, а то будет как-будто покадро показывать без пропуска. типа прошло 2 секунды, а показывает второй кадр вместо 200 кадра
+в дефолтном качании оружия. надо в основном повороты, а не перемещение. добавить повороты, а перемещение уменьшить
+при движении вперёд, оружие немного назад перемещать
+при ходьбе оружие меньше колыхается
+оружие направить в центр экрана
+при приземлении кнечно тоже head bobbing как в https://www.youtube.com/watch?v=WF7d21zOD0M
+тест. не отпуская стрельбу, войти в прицел. в играх продолжается стрельба обычно
+в прицеле точность выше, а значит текстура прицела меньше
+*/
+/*
+let mouseX = (weapon_sway_mouse.x - 0.5) * weapon_sway_sensitivity; // Assume mouse input ranges from -0.5 to 0.5
+let mouseY = (weapon_sway_mouse.y - 0.5) * weapon_sway_sensitivity; // Assume mouse input ranges from -0.5 to 0.5
+let rotationX = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), -mouseY);
+let rotationY = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), mouseX);
+rotationX=Math.min(Math.max(rotationX,min),max);
+let targetRotation = rotationX.multiply(rotationY);
+mesh["weapon"].quaternion.slerp(targetRotation, weapon_sway_smooth * 0.001);
+*/
+
+
+let hand_item=[];
+hand_item["gun"]=[0.04,0.5];
+hand_item["riffle"]=[0.04,0.5];
+hand_item["rpg"]=[0.04,0.5];
+
+
+/* *********************************************************  */
+
+/*
+ НАКЛОН ПРИ БЕГЕ
+ НАКЛОН ПРИ БЕГЕ
+ НАКЛОН ПРИ БЕГЕ
+ НАКЛОН ПРИ БЕГЕ
+ НАКЛОН ПРИ БЕГЕ
+ НАКЛОН ПРИ БЕГЕ
+ НАКЛОН ПРИ БЕГЕ НАКЛОН ПРИ БЕГЕ НАКЛОН ПРИ БЕГЕ НАКЛОН ПРИ БЕГЕ
+ НАКЛОН ПРИ БЕГЕ
+ НАКЛОН ПРИ БЕГЕ
+ НАКЛОН ПРИ БЕГЕ
+ НАКЛОН ПРИ БЕГЕ
+ НАКЛОН ПРИ БЕГЕ
+ НАКЛОН ПРИ БЕГЕ
+ НАКЛОН ПРИ БЕГЕ
+ НАКЛОН ПРИ БЕГЕ
+ НАКЛОН ПРИ БЕГЕ 
+https://www.youtube.com/watch?v=kb41x0nNUCA
+
+/* *********************************************************  */
+
+
 // ____________________ КАЧАНИЕ ГОЛОВЫ ____________________
 
 
@@ -57,6 +131,7 @@ let hand_sway_go_position_z=0;
 let hand_sway_turn_rotation_x=0;
 let hand_sway_turn_rotation_y=0;
 let hand_sway_turn_rotation_z=0;
+let hand_sway_head_angle_rotation_z=0;
 
 
 let hand_go_intensity=0;
@@ -292,7 +367,7 @@ hand_position.y=hand_offset_y+hand_sway_go_position_y+hand_idle_position_y;
 hand_position.z=hand_sway_go_position_z;
 hand_rotation.x=hand_sway_turn_rotation_x+velocity_x;
 hand_rotation.y=hand_sway_turn_rotation_y+velocity_y;
-hand_rotation.z=hand_sway_turn_rotation_z+hand_sway_strafe_rotation_z;
+hand_rotation.z=hand_sway_turn_rotation_z+hand_sway_strafe_rotation_z+hand_sway_head_angle_rotation_z;
 
 
 camera.rotation.z=-PI+velocity_x*0.3-spring_reload_velocity_z+camera_strafe_rotation_z-Math.sin(head_bobbing_time*7.5)*0.004*head_bobbing_total;
