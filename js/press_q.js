@@ -8,7 +8,7 @@ function press_q(){
 document.onkeydown=(event)=>{
 
 
-if(event.code=="KeyQ" && press_q_can_fetch){
+if(event.code=="KeyT" && press_q_can_fetch){
 press_q_can_fetch=0;
 
 

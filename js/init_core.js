@@ -24,6 +24,9 @@ window.mixer=mixer;
 window.mixers=mixers;
 window.action=action;
 
+window.sprite=sprite;
+window.sprite_far=sprite_far;
+
 
 window.player=player;
 window.intersection_ray_triangle=intersection_ray_triangle;
@@ -259,7 +262,7 @@ grass_mesh_create();
 grass_place();
 
 
-tex["atlas_sprite"]=DataArrayTexture_set([tex["a-0"],tex["a-1"],tex["a-2"]]);
+tex["atlas_sprite"]=DataArrayTexture_set([tex["atlas"]]);
 
 
 atlas_set();
@@ -289,8 +292,8 @@ action["soldier_attack_1"]=mixer["soldier_attack_1"].clipAction(action["soldier_
 action["soldier_attack_1"].play();
 mixers.push(mixer["soldier_attack_1"]);
 mesh["soldier_attack_1"].animations=[];
-mesh["soldier_attack_1"].scale.set(0.025,0.025,0.025);
-mesh["soldier_attack_1"].position.set(-2,0,-8);
+mesh["soldier_attack_1"].scale.set(0.1,0.1,0.1);
+mesh["soldier_attack_1"].position.set(-4,0,-8);
 mesh["soldier_attack_1"].rotation.y=0;
 mesh["soldier_attack_1"].children[1].frustumCulled=false;
 mesh["soldier_attack_1"].children[1].onAfterRender=function(){

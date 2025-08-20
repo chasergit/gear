@@ -30,6 +30,8 @@ let sounds_list=[
 ["run_grass","./sounds/sounds/run_grass.mp3"],
 ["gun_shoot","./sounds/sounds/gun_shoot.mp3"],
 ["gun_reload","./sounds/sounds/aksu_74_reload.mp3"],
+["gun_aim_in","./sounds/sounds/gun_aim_in.mp3"],
+["gun_aim_out","./sounds/sounds/gun_aim_out.mp3"],
 ["footstep_1","./sounds/sounds/footsteps/Footstep Grass 01.mp3"],
 ["footstep_2","./sounds/sounds/footsteps/Footstep Grass 02.mp3"],
 ["footstep_3","./sounds/sounds/footsteps/Footstep Grass 03.mp3"],

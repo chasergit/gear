@@ -59,10 +59,12 @@ let click_right_up=false;
 let click_right_down=false;
 
 
-let start_time=Date.now();
-let time=0;
 let pause=0;
 let clock=new THREE.Clock();
+let timer=new THREE.Timer();
+timer.connect(document);
+let start_time=Date.now();
+let time=0;
 let delta=0;
 
 

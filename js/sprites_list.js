@@ -10,6 +10,7 @@ sprite["beam"]=[];
 sprite["wolf"]=[];
 sprite["soul"]=[];
 sprite["other"]=[];
+sprite["blood"]=[];
 
 
 function sprites_set(){

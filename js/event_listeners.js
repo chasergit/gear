@@ -1,3 +1,8 @@
+document.addEventListener("contextmenu",function(event){
+event.preventDefault();
+});
+
+
 function fullscreen_pointerlock(){
 	
 	
@@ -6,12 +11,12 @@ if(!document.fullscreenElement){ document.documentElement.requestFullscreen(); }
 
 }
 
-
+let can=1;
 function event_listeners_set(){
 
 
-document.addEventListener("keydown",(event)=>{ key_status[event.code]=true; });
-document.addEventListener("keyup",(event)=>{ key_status[event.code]=false; key_up[event.code]=true; });
+document.addEventListener("keydown",(event)=>{ if(event.code=="ShiftLeft"){ if(can){ can=0; key_status[event.code]=true;} }else{ key_status[event.code]=true; }    });
+document.addEventListener("keyup",(event)=>{ key_status[event.code]=false; key_up[event.code]=true; can=1; });
 
 
 document.addEventListener("mousedown",(event)=>{

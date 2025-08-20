@@ -8,7 +8,7 @@ dummy["instance"]=new THREE.Object3D();
 let total=0;
 let count=0;
 
-
+/*
 for(let i=0;i<50;i++){
 for(let j=0;j<50;j++){
 
@@ -23,10 +23,11 @@ total+=count;
 
 }
 }
-//c=grass_instance_create(50,0,0,100,400,1.50,"grass","grass_long","grass_long_1");
+*/
+
+count=grass_instance_create(50,0,0,100,10000,1.50,"grass","grass_long","grass_long_1");
 total+=count;
-//c=grass_instance_create(50,0,50,100,400,1.50,"grass","grass_long","grass_long_1");
-total+=count;
+
 
 
 debug_text.push(["grass_placed","<font>["+total+"]</font> "+(performance.now()-start_ms).toFixed(3)+""]);

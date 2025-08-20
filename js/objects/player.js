@@ -10,6 +10,8 @@ scene.add(player);
 
 let player_direction={x:0,y:0,z:1};
 let player_angle={y:90,x:180};
+let player_angle_y_min=10; // МИНИМАЛЬНЫЙ УГОЛ ВЗОРА
+let player_angle_y_max=170; // МАКСИМАЛЬНЫЙ УГОЛ ВЗОРА
 let player_height=1.80; // РОСТ
 let player_eyes=1.70; // УРОВЕНЬ ГЛАЗ
 let player_radius=0.25; // РАДИУС ИГРОКА
@@ -51,7 +53,16 @@ player_tall.add(player_head);
 player_head.add(camera);
 
 
-let player_head_angle=0;
+// ____________________ ВЫГЛЯДЫВАНИЕ ____________________
+
+
+let player_peek_value=0;
+let player_peek_in_speed=0.02;
+let player_peek_out_speed=0.06;
+let player_peek_head_position_x=0.15;
+let player_peek_head_position_y=-0.05;
+let player_peek_hand_rotation_z=0.1;
+let player_peek_camera_rotation_z=0.2;
 
 
 mesh["player_radius_helper"]=new THREE.Mesh(new THREE.CylinderGeometry(player_radius,player_radius,0.1,32,1),new THREE.MeshBasicMaterial({color:0xffff00,wireframe:true}));
@@ -134,40 +145,66 @@ player_move.z=0;
 if(key_status["KeyW"]){ player_move.x+=player_direction.x; if(player_fly){ player_move.y+=player_direction.y; } player_move.z+=player_direction.z; }
 if(key_status["KeyS"]){ player_move.x-=player_direction.x; if(player_fly){ player_move.y-=player_direction.y; } player_move.z-=player_direction.z; }
 if(key_status["KeyA"]){
-if(player_on_floor){ hand_sway_strafe_rotation_z+=0.005; camera_strafe_rotation_z+=0.001; }
+if(player_on_floor){ hand_sway_strafe_rotation_z+=0.002; camera_strafe_rotation_z+=0.001; }
 player_move.x-=Math.cos(player_angle.x*degrees_to_radian); player_move.z+=Math.sin(player_angle.x*degrees_to_radian);
 }
 if(key_status["KeyD"]){
-if(player_on_floor){ hand_sway_strafe_rotation_z-=0.005; camera_strafe_rotation_z-=0.001; }
+if(player_on_floor){ hand_sway_strafe_rotation_z-=0.002; camera_strafe_rotation_z-=0.001; }
 player_move.x+=Math.cos(player_angle.x*degrees_to_radian); player_move.z-=Math.sin(player_angle.x*degrees_to_radian);
 }
 
 
-if(key_status["ShiftLeft"] && key_status["KeyW"] && player_on_floor){ player_speed_floor+=0.4; head_bobbing_run_multyplier+=head_bobbing_run_multyplier_add; }
-else{ player_speed_floor-=0.4; head_bobbing_run_multyplier-=head_bobbing_run_multyplier_add; }
+if(key_status["ShiftLeft"] && key_status["KeyW"] && player_on_floor){
+
+
+player_speed_floor+=0.4;
+head_bobbing_run_multyplier+=head_bobbing_run_multyplier_add;
+
+
+hand_run_enabled=true;
+if(hand_aim_enabled){
+hand_aim_enabled=false;
+sounds_play(null,"gun_aim_out",false,false,1,0,1,false,"","");
+}
+
+
+if(click_left_down){
+key_status["ShiftLeft"]=false;
+}
+
+
+}
+else{
+player_speed_floor-=0.4;
+head_bobbing_run_multyplier-=head_bobbing_run_multyplier_add;
+hand_run_enabled=false;
+}
+
+
 player_speed_floor=Math.min(Math.max(player_speed_floor,player_speed_go),player_speed_run);
 head_bobbing_run_multyplier=Math.min(head_bobbing_run_multyplier_max,Math.max(1,head_bobbing_run_multyplier));
 
 
 if(key_status["KeyQ"]){
-player_head_angle-=0.02;
-player_head_angle=Math.min(Math.max(player_head_angle,-1),1);
-hand_sway_head_angle_rotation_z+=0.005;
-hand_sway_head_angle_rotation_z=Math.min(Math.max(hand_sway_head_angle_rotation_z,-0.2),0.2);
+player_peek_value-=player_peek_in_speed;
+player_peek_value=Math.min(Math.max(player_peek_value,-1),1);
 }
 else if(key_status["KeyE"]){
-player_head_angle+=0.02;
-player_head_angle=Math.min(Math.max(player_head_angle,-1),1);
-hand_sway_head_angle_rotation_z-=0.005;
-hand_sway_head_angle_rotation_z=Math.min(Math.max(hand_sway_head_angle_rotation_z,-0.2),0.2);
+player_peek_value+=player_peek_in_speed;
+player_peek_value=Math.min(Math.max(player_peek_value,-1),1);
 }
-else{ player_head_angle+=-player_head_angle*0.06; hand_sway_head_angle_rotation_z+=-hand_sway_head_angle_rotation_z*0.06; }
+else{ player_peek_value+=-player_peek_value*player_peek_out_speed; }
 
 
 if(key_status["KeyY"]){ sun_direction_upadte();	}
 
 
 if(key_status["KeyR"] && action["gun_2_reload"].enabled==false){
+
+
+if(hand_aim_enabled){ hand_aim_enabled=false; }
+
+
 action["gun_2_reload"].enabled=true;
 action["gun_2_reload"].time=0;
 sounds_play(null,"gun_reload",false,false,1,0,1,false,"","");
@@ -187,7 +224,10 @@ setTimeout(()=>{ spring_reload_impulse_x=0.02; spring_reload_impulse_y=0.02; },2
 }
 
 
-if(click_left_down && action["gun_2_reload"].enabled==false){
+if(click_left_down && !hand_run_enabled && hand_run_intensity==0){
+	
+	
+if(action["gun_2_reload"].enabled==false){
 	
 	
 if(light["weapon"].intensity==0){
@@ -199,9 +239,49 @@ impulse_y=(Math.random()-0.5)*0.06;
 sounds_play(null,"gun_shoot",false,false,1,0,1,false,"","");
 light["weapon"].intensity=5;
 setTimeout(()=>{ light["weapon"].intensity=0; },50);
+
+
+raycaster.ray.direction.set(camera_direction_x,camera_direction_y,camera_direction_z);
+raycaster.ray.origin.copy(camera_position);
+let hits_a=raycaster.intersectObjects([mesh["soldier_attack_1"],mesh["soldier_attack_2"]],true);
+if(hits_a.length>0){
+let scale=0.1+Math.random()*0.3;
+sprite["blood"]["j"+Date.now()]={
+type:1,time:10,power:0.05+Math.random()*0.2,nx:hits_a[0].normal.x,ny:hits_a[0].normal.y,nz:hits_a[0].normal.z,	
+offset:[hits_a[0].point.x,hits_a[0].point.y,hits_a[0].point.z],scale:[scale,scale],quaternion:[0,0,0,3],rotation:0,color:[1,1,1,1],blend:1,frame:atlas["blood_3"][0],texture:atlas["blood_3"][1]
+};
 }
+
+
+}
+
+
+}
+
+
 click_left_down=false;
 click_left_up=false;
+
+	
+}
+
+
+if(click_right_down && (action["gun_2_reload"].enabled==false || key_status["ShiftLeft"])){
+	
+
+if(hand_aim_enabled){
+hand_aim_enabled=false;
+sounds_play(null,"gun_aim_out",false,false,1,0,1,false,"","");
+}
+else{
+hand_aim_enabled=true;
+sounds_play(null,"gun_aim_in",false,false,1,0,1,false,"","");
+}	
+click_right_down=false;
+click_right_up=false;
+
+
+key_status["ShiftLeft"]=false;
 
 	
 }
@@ -268,8 +348,7 @@ hand_sway_data_update(event.movementX,event.movementY);
 function player_rotate_limit(){
 	
 	
-if(player_angle.y>170){ player_angle.y=170; }
-if(10>player_angle.y){ player_angle.y=10; }
+player_angle.y=Math.min(player_angle_y_max,Math.max(player_angle_y_min,player_angle.y));
 
 
 if(player_angle.x>360){ player_angle.x-=360; }
@@ -288,9 +367,9 @@ player_direction.z=Math.sin((-player_angle.x-90)*degrees_to_radian)*(Math.sin(pl
 player_head.lookAt(player.position.x+player_direction.x+player_head.position.x,player.position.y+player_eyes+player_direction.y+player_head.position.y,player.position.z+player_direction.z+player_head.position.z);
 
 
-player_head.position.x=Math.cos(-player_angle.x*degrees_to_radian)*player_head_angle*0.15;
-player_head.position.z=Math.sin(-player_angle.x*degrees_to_radian)*player_head_angle*0.15;
-player_head.position.y=-0.1*Math.abs(player_head_angle);
+player_head.position.x=Math.cos(-player_angle.x*degrees_to_radian)*player_peek_value*player_peek_head_position_x;
+player_head.position.z=Math.sin(-player_angle.x*degrees_to_radian)*player_peek_value*player_peek_head_position_x;
+player_head.position.y=Math.abs(player_peek_value)*player_peek_head_position_y;
 
 
 }

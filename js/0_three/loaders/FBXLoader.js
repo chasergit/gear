@@ -1,5 +1,7 @@
 /*
 
+050825 ЗАМЕНЕНЫ ФУНКЦИИ ИЗ 158 ВЕРСИИ: generateTracks, generateRotationTrack, interpolateRotations, inject.
+
 
 231024
 
@@ -2864,11 +2866,13 @@ class AnimationParser {
 		const tracks = [];
 
 		let initialPosition = new Vector3();
+		let initialRotation = new Quaternion();
 		let initialScale = new Vector3();
 
-		if ( rawTracks.transform ) rawTracks.transform.decompose( initialPosition, new Quaternion(), initialScale );
+		if ( rawTracks.transform ) rawTracks.transform.decompose( initialPosition, initialRotation, initialScale );
 
 		initialPosition = initialPosition.toArray();
+		initialRotation = new Euler().setFromQuaternion( initialRotation, rawTracks.eulerOrder ).toArray();
 		initialScale = initialScale.toArray();
 
 		if ( rawTracks.T !== undefined && Object.keys( rawTracks.T.curves ).length > 0 ) {
@@ -2880,7 +2884,7 @@ class AnimationParser {
 
 		if ( rawTracks.R !== undefined && Object.keys( rawTracks.R.curves ).length > 0 ) {
 
-			const rotationTrack = this.generateRotationTrack( rawTracks.modelName, rawTracks.R.curves, rawTracks.preRotation, rawTracks.postRotation, rawTracks.eulerOrder );
+			const rotationTrack = this.generateRotationTrack( rawTracks.modelName, rawTracks.R.curves, initialRotation, rawTracks.preRotation, rawTracks.postRotation, rawTracks.eulerOrder );
 			if ( rotationTrack !== undefined ) tracks.push( rotationTrack );
 
 		}
@@ -2912,27 +2916,36 @@ class AnimationParser {
 
 	}
 
-	generateRotationTrack( modelName, curves, preRotation, postRotation, eulerOrder ) {
+	generateRotationTrack( modelName, curves, initialValue, preRotation, postRotation, eulerOrder ) {
 
-		let times;
-		let values;
+		if ( curves.x !== undefined ) {
 
-		if ( curves.x !== undefined && curves.y !== undefined && curves.z !== undefined ) {
-
-			const result = this.interpolateRotations( curves.x, curves.y, curves.z, eulerOrder );
-
-			times = result[ 0 ];
-			values = result[ 1 ];
+			this.interpolateRotations( curves.x );
+			curves.x.values = curves.x.values.map( MathUtils.degToRad );
 
 		}
 
-		// For Maya models using "Joint Orient", Euler order only applies to rotation, not pre/post-rotations
-		const defaultEulerOrder = getEulerOrder( 0 );
+		if ( curves.y !== undefined ) {
+
+			this.interpolateRotations( curves.y );
+			curves.y.values = curves.y.values.map( MathUtils.degToRad );
+
+		}
+
+		if ( curves.z !== undefined ) {
+
+			this.interpolateRotations( curves.z );
+			curves.z.values = curves.z.values.map( MathUtils.degToRad );
+
+		}
+
+		const times = this.getTimesForAllAxes( curves );
+		const values = this.getKeyframeTrackValues( times, curves, initialValue );
 
 		if ( preRotation !== undefined ) {
 
 			preRotation = preRotation.map( MathUtils.degToRad );
-			preRotation.push( defaultEulerOrder );
+			preRotation.push( eulerOrder );
 
 			preRotation = new Euler().fromArray( preRotation );
 			preRotation = new Quaternion().setFromEuler( preRotation );
@@ -2942,7 +2955,7 @@ class AnimationParser {
 		if ( postRotation !== undefined ) {
 
 			postRotation = postRotation.map( MathUtils.degToRad );
-			postRotation.push( defaultEulerOrder );
+			postRotation.push( eulerOrder );
 
 			postRotation = new Euler().fromArray( postRotation );
 			postRotation = new Quaternion().setFromEuler( postRotation ).invert();
@@ -2954,31 +2967,14 @@ class AnimationParser {
 
 		const quaternionValues = [];
 
-		if ( ! values || ! times ) return new QuaternionKeyframeTrack( modelName + '.quaternion', [ 0 ], [ 0 ] );
-
 		for ( let i = 0; i < values.length; i += 3 ) {
 
 			euler.set( values[ i ], values[ i + 1 ], values[ i + 2 ], eulerOrder );
+
 			quaternion.setFromEuler( euler );
 
 			if ( preRotation !== undefined ) quaternion.premultiply( preRotation );
 			if ( postRotation !== undefined ) quaternion.multiply( postRotation );
-
-			// Check unroll
-			if ( i > 2 ) {
-
-				const prevQuat = new Quaternion().fromArray(
-					quaternionValues,
-					( ( i - 3 ) / 3 ) * 4
-				);
-
-				if ( prevQuat.dot( quaternion ) < 0 ) {
-
-					quaternion.set( - quaternion.x, - quaternion.y, - quaternion.z, - quaternion.w );
-
-				}
-
-			}
 
 			quaternion.toArray( quaternionValues, ( i / 3 ) * 4 );
 
@@ -3110,109 +3106,46 @@ class AnimationParser {
 	// Rotations are defined as Euler angles which can have values  of any size
 	// These will be converted to quaternions which don't support values greater than
 	// PI, so we'll interpolate large rotations
-	interpolateRotations( curvex, curvey, curvez, eulerOrder ) {
+	interpolateRotations( curve ) {
 
-		const times = [];
-		const values = [];
+		for ( let i = 1; i < curve.values.length; i ++ ) {
 
-		// Add first frame
-		times.push( curvex.times[ 0 ] );
-		values.push( MathUtils.degToRad( curvex.values[ 0 ] ) );
-		values.push( MathUtils.degToRad( curvey.values[ 0 ] ) );
-		values.push( MathUtils.degToRad( curvez.values[ 0 ] ) );
+			const initialValue = curve.values[ i - 1 ];
+			const valuesSpan = curve.values[ i ] - initialValue;
 
-		for ( let i = 1; i < curvex.values.length; i ++ ) {
+			const absoluteSpan = Math.abs( valuesSpan );
 
-			const initialValue = [
-				curvex.values[ i - 1 ],
-				curvey.values[ i - 1 ],
-				curvez.values[ i - 1 ],
-			];
+			if ( absoluteSpan >= 180 ) {
 
-			if ( isNaN( initialValue[ 0 ] ) || isNaN( initialValue[ 1 ] ) || isNaN( initialValue[ 2 ] ) ) {
+				const numSubIntervals = absoluteSpan / 180;
 
-				continue;
+				const step = valuesSpan / numSubIntervals;
+				let nextValue = initialValue + step;
 
-			}
+				const initialTime = curve.times[ i - 1 ];
+				const timeSpan = curve.times[ i ] - initialTime;
+				const interval = timeSpan / numSubIntervals;
+				let nextTime = initialTime + interval;
 
-			const initialValueRad = initialValue.map( MathUtils.degToRad );
+				const interpolatedTimes = [];
+				const interpolatedValues = [];
 
-			const currentValue = [
-				curvex.values[ i ],
-				curvey.values[ i ],
-				curvez.values[ i ],
-			];
+				while ( nextTime < curve.times[ i ] ) {
 
-			if ( isNaN( currentValue[ 0 ] ) || isNaN( currentValue[ 1 ] ) || isNaN( currentValue[ 2 ] ) ) {
+					interpolatedTimes.push( nextTime );
+					nextTime += interval;
 
-				continue;
-
-			}
-
-			const currentValueRad = currentValue.map( MathUtils.degToRad );
-
-			const valuesSpan = [
-				currentValue[ 0 ] - initialValue[ 0 ],
-				currentValue[ 1 ] - initialValue[ 1 ],
-				currentValue[ 2 ] - initialValue[ 2 ],
-			];
-
-			const absoluteSpan = [
-				Math.abs( valuesSpan[ 0 ] ),
-				Math.abs( valuesSpan[ 1 ] ),
-				Math.abs( valuesSpan[ 2 ] ),
-			];
-
-			if ( absoluteSpan[ 0 ] >= 180 || absoluteSpan[ 1 ] >= 180 || absoluteSpan[ 2 ] >= 180 ) {
-
-				const maxAbsSpan = Math.max( ...absoluteSpan );
-
-				const numSubIntervals = maxAbsSpan / 180;
-
-				const E1 = new Euler( ...initialValueRad, eulerOrder );
-				const E2 = new Euler( ...currentValueRad, eulerOrder );
-
-				const Q1 = new Quaternion().setFromEuler( E1 );
-				const Q2 = new Quaternion().setFromEuler( E2 );
-
-				// Check unroll
-				if ( Q1.dot( Q2 ) ) {
-
-					Q2.set( - Q2.x, - Q2.y, - Q2.z, - Q2.w );
+					interpolatedValues.push( nextValue );
+					nextValue += step;
 
 				}
 
-				// Interpolate
-				const initialTime = curvex.times[ i - 1 ];
-				const timeSpan = curvex.times[ i ] - initialTime;
-
-				const Q = new Quaternion();
-				const E = new Euler();
-				for ( let t = 0; t < 1; t += 1 / numSubIntervals ) {
-
-					Q.copy( Q1.clone().slerp( Q2.clone(), t ) );
-
-					times.push( initialTime + t * timeSpan );
-					E.setFromQuaternion( Q, eulerOrder );
-
-					values.push( E.x );
-					values.push( E.y );
-					values.push( E.z );
-
-				}
-
-			} else {
-
-				times.push( curvex.times[ i ] );
-				values.push( MathUtils.degToRad( curvex.values[ i ] ) );
-				values.push( MathUtils.degToRad( curvey.values[ i ] ) );
-				values.push( MathUtils.degToRad( curvez.values[ i ] ) );
+				curve.times = inject( curve.times, i, interpolatedTimes );
+				curve.values = inject( curve.values, i, interpolatedValues );
 
 			}
 
 		}
-
-		return [ times, values ];
 
 	}
 
@@ -4419,6 +4352,14 @@ function slice( a, b, from, to ) {
 	}
 
 	return a;
+
+}
+
+
+// inject array a2 into array a1 at index
+function inject( a1, index, a2 ) {
+
+	return a1.slice( 0, index ).concat( a2 ).concat( a1.slice( index ) );
 
 }
 

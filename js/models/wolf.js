@@ -19,7 +19,7 @@ object.traverse(function(child) {
 if(child.isMesh){
 child.material=new THREE.MeshStandardMaterial({
 map:tex["wolf"],
-metalness:1
+metalness:0.5
 });
 child.castShadow=true;
 }

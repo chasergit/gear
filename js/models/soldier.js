@@ -29,6 +29,11 @@ mesh["soldier"].children[2].material=mat["soldier_body"];
 mesh["soldier"].children[3].material[0]=mat["soldier_body"];
 mesh["soldier"].children[3].material[1]=mat["soldier_head"];
 
+/*
+mesh["soldier"].children[1].children[0].material[0]=mat["soldier_body"];
+mesh["soldier"].children[1].children[0].material[1]=mat["soldier_head"];
+mesh["soldier"].children[1].children[1].material=mat["soldier_body"];
+*/
 
 // СКРЫВАЕМ КОСТИ, СНИЖАЯ НАГРУЗКУ НА 10%. ПРИ ЭТОМ ДОСТАТОЧНО СКРЫТЬ ПЕРВУЮ ОСНОВНУЮ КОСТЬ, ОСТАЛЬНЫЕ НЕОБЯЗАТЕЛЬНО.
 mesh["soldier"].traverse(function(child){

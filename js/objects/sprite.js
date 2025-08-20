@@ -24,7 +24,7 @@ screen_resolution:{value:null},
 time:{value:0}
 },
 defines:{
-depth:true
+depth:false
 },
 vertexShader:vs["sprite"],
 fragmentShader:fs["sprite"],
@@ -44,7 +44,10 @@ mesh["sprite"].frustumCulled=false;
 mesh["sprite"].matrixAutoUpdate=false;
 mesh["sprite"].updateMatrixWorld=function(){};
 mesh["sprite"].onBeforeRender=function(){
+mat["sprite"].uniforms.time.value=time;
 mat["sprite"].uniforms.tDepth.value=water_rtt_scene.depthTexture;
+mat["sprite"].uniforms.cameraDirection.value=camera_direction;
+mat["sprite"].uniforms.cameraAngle.value=[-camera_angle_z*degrees_to_radian,-camera_angle_y*degrees_to_radian];
 }
 scene.add(mesh["sprite"]);
 
@@ -78,6 +81,9 @@ cameraDirection:{value:[0,0,0]},
 cameraAngle:{value:[0,0]},
 screen_resolution:{value:null},
 time:{value:0}
+},
+defines:{
+depth:false
 },
 vertexShader:vs["sprite"],
 fragmentShader:fs["sprite"],

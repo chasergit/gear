@@ -117,9 +117,7 @@ tex["wall_278"]=texture_loader.load("./textures/wall/wall_278.png");
 tex["wall_279"]=texture_loader.load("./textures/wall/wall_279.png");
 
 
-tex["a-0"]=texture_loader.load("./textures/sprite/atlas/a-0.png");
-tex["a-1"]=texture_loader.load("./textures/sprite/atlas/a-1.png");
-tex["a-2"]=texture_loader.load("./textures/sprite/atlas/a-2.png");
+tex["atlas"]=texture_loader.load("./textures/sprite/atlas/atlas.png");
 
 
 tex["bump_normal"]=texture_loader.load("./textures/bump_normal.png");

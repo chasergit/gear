@@ -76,9 +76,9 @@ child.material=mat["gun_2_gun"];
 mixer["gun_2"]=new THREE.AnimationMixer(mesh["gun_2"]);
 
 
-action["gun_2_shoot"]=THREE.AnimationUtils.subclip(mesh["gun_2"].animations[0],"attack",0,13);
+action["gun_2_shoot"]=THREE.AnimationUtils.subclip(mesh["gun_2"].animations[0],"attack",0,12);
 action["gun_2_shoot"]=mixer["gun_2"].clipAction(action["gun_2_shoot"]);
-action["gun_2_shoot"].timeScale=1.5;
+action["gun_2_shoot"].timeScale=2.0;
 action["gun_2_shoot"].setLoop(THREE.LoopOnce);
 action["gun_2_shoot"].play();
 action["gun_2_shoot"].enabled=false;

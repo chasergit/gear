@@ -6,7 +6,7 @@
 */
 
 
-let water_stats=true; // ОТОБРАЖАТЬ СТАТИСТИКУ В КОНСОЛЕ
+let water_stats=false; // ОТОБРАЖАТЬ СТАТИСТИКУ В КОНСОЛЕ
 let water_debug=false; // ПОКАЗЫВАТЬ СЕТКУ ВОДЫ И ВОДНОЙ ЛИНИИ
 let water=[];
 let water_refaction_enabled=false;
