@@ -111,7 +111,7 @@ $js_files=array(
 
 './js/objects/overlay_damage_blood.js',
 './js/objects/light_probe.js',
-'./js/objects/weapon.js',
+'./js/objects/hand.js',
 './js/objects/crosshair.js',
 './js/objects/sprite.js',
 './js/objects/camera.js',
@@ -138,7 +138,6 @@ $js_files=array(
 './shaders/terrain_triplanar.js',
 
 
-
 './js/objects/water_core.js',
 './js/waters_list.js',
 
@@ -150,12 +149,8 @@ $js_files=array(
 './js/instances_section_pass.js',
 
 
-
 './js/objects/atlas.js',
-'./textures/sprite/atlas/a-0.js',
-'./textures/sprite/atlas/a-1.js',
-'./textures/sprite/atlas/a-2.js',
-
+'./textures/sprite/atlas/atlas.js',
 
 
 './js/models/landscape.js',
